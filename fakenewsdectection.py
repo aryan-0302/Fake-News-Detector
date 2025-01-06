@@ -1,17 +1,19 @@
 import streamlit as st
 import pickle
+from sklearn.feature_extraction.text import TfidfVectorizer
 
-# Load the trained model and TF-IDF vectorizer from the pickle file
+# Load the trained model from the pickle file
 @st.cache_resource
 def load_model():
     with open("fakenewsdetection.pkl", "rb") as file:
-        model_data = pickle.load(file)
-    model = model_data['model']
-    vectorizer = model_data['vectorizer']
-    return model, vectorizer
+        model = pickle.load(file)
+    return model
 
-# Load model and vectorizer
-model, vectorizer = load_model()
+# Initialize the TF-IDF vectorizer (same configuration as during training)
+vectorizer = TfidfVectorizer(stop_words='english', max_features=5000)
+
+# Load the model
+model = load_model()
 
 # Streamlit app
 st.title("Fake News Detection App")
