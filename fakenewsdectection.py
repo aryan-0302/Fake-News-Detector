@@ -10,6 +10,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
+import pickle
 
 news_df=pd.read_csv('train.csv')
 news_df.head()
@@ -63,6 +64,9 @@ X_train.shape
 
 model=LogisticRegression()
 model.fit(X_train,Y_train)
+
+with open('fakenewsdetection.pkl','wb') as file: 
+    pickle.dump('model',file)
 
 train_y_pred=model.predict(X_train)
 train_accuracy=accuracy_score(train_y_pred,Y_train)
