@@ -1,40 +1,29 @@
 import streamlit as st
 import pickle
-from sklearn.feature_extraction.text import TfidfVectorizer
+import re
+from nltk.stem.porter import PorterStemmer
+from nltk.corpus import stopwords
+import nltk
 
-# Load the trained model from the pickle file
-@st.cache_resource
-def load_model():
-    with open("fakenewsdetection.pkl", "rb") as file:
-        model = pickle.load(file)
-    return model
+# Download stopwords
+nltk.download('stopwords')
 
-# Initialize the TF-IDF vectorizer (same configuration as during training)
-vectorizer = TfidfVectorizer(stop_words='english', max_features=5000)
+# Load model and vectorizer
+model = pickle.load(open("model.pkl", "rb"))
+vectorizer = pickle.load(open("vectorizer.pkl", "rb"))
+ps = PorterStemmer()
 
-# Load the model
-model = load_model()
+# Preprocess function
+def preprocess(text):
+    text = re.sub('[^a-zA-Z]', ' ', text).lower()
+    return ' '.join([ps.stem(word) for word in text.split() if word not in stopwords.words('english')])
 
-# Streamlit app
-st.title("Fake News Detection App")
-st.write("Enter a news paragraph to check if it is real or fake.")
+# Streamlit interface
+st.title("Fake News Detector")
+input_text = st.text_area("Enter news text")
 
-# Input text
-news_input = st.text_area("News Paragraph", height=150)
-
-# Predict button
 if st.button("Predict"):
-    if news_input.strip():
-        # Transform input text using the loaded TF-IDF vectorizer
-        input_vectorized = vectorizer.transform([news_input])
-        
-        # Predict using the loaded model
-        prediction = model.predict(input_vectorized)[0]
-        
-        # Display the result
-        if prediction == 1:
-            st.error("This news is likely FAKE.")
-        else:
-            st.success("This news is likely REAL.")
-    else:
-        st.warning("Please enter a news paragraph for prediction.")
+    processed_text = preprocess(input_text)
+    vectorized_input = vectorizer.transform([processed_text])
+    prediction = model.predict(vectorized_input)[0]
+    st.write("Result:", "Fake News" if prediction == 1 else "Real News")
